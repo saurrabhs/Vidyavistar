@@ -114,7 +114,7 @@ const HeroSection = () => {
             leading-tight
           "
         >
-          Explore.
+          Explore!
           <br />
           Dream.
           <br />
