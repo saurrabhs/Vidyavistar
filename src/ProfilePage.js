@@ -2,20 +2,26 @@ import React, { useState, useEffect } from "react";
 import { auth, db } from "./firebaseConfig";
 import { updateProfile, sendPasswordResetEmail } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+// Define an array of default profile picture URLs (ensure these images exist in public/images)
+const defaultProfilePics = [
+  "/images/default1.png",
+  "/images/default2.png",
+  "/images/default3.png",
+  "/images/default4.png",
+  "/images/default5.png",
+];
 
 const ProfilePage = () => {
   const user = auth.currentUser;
   const [profileData, setProfileData] = useState({
     name: "",
     phone: "",
+    birthDate: "",
+    interests: "",
     photoURL: "",
   });
-  const [profilePic, setProfilePic] = useState(null);
   const [message, setMessage] = useState("");
-  
-  // Initialize Firebase Storage
-  const storage = getStorage();
 
   // Load user profile data on mount
   useEffect(() => {
@@ -23,9 +29,11 @@ const ProfilePage = () => {
       setProfileData({
         name: user.displayName || "",
         phone: "",
+        birthDate: "",
+        interests: "",
         photoURL: user.photoURL || "",
       });
-      // Fetch additional data from Firestore (e.g., phone number)
+      // Fetch additional data from Firestore (e.g., phone, birthDate, interests)
       const fetchProfile = async () => {
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
@@ -33,6 +41,8 @@ const ProfilePage = () => {
           setProfileData((prev) => ({
             ...prev,
             phone: docSnap.data().phone || "",
+            birthDate: docSnap.data().birthDate || "",
+            interests: docSnap.data().interests || "",
           }));
         }
       };
@@ -44,39 +54,38 @@ const ProfilePage = () => {
     setProfileData({ ...profileData, [e.target.name]: e.target.value });
   };
 
-  // When a file is selected, store it in state and show a preview URL
+  // When a file is selected, store it and create a temporary preview URL
   const handlePicChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setProfilePic(file);
       setProfileData({ ...profileData, photoURL: URL.createObjectURL(file) });
     }
+  };
+
+  // When a default image is clicked, update photoURL accordingly
+  const handleDefaultPicSelect = (url) => {
+    setProfileData({ ...profileData, photoURL: url });
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
     setMessage("");
     try {
-      let downloadURL = profileData.photoURL;
-
-      // If a new profile picture was selected, upload it to Firebase Storage
-      if (profilePic) {
-        const storageRef = ref(storage, `profileImages/${user.uid}/${profilePic.name}`);
-        await uploadBytes(storageRef, profilePic);
-        downloadURL = await getDownloadURL(storageRef);
-      }
+      let finalPhotoURL = profileData.photoURL;
 
       // Update Firebase Auth profile with the new name and photo URL
       await updateProfile(user, {
         displayName: profileData.name,
-        photoURL: downloadURL,
+        photoURL: finalPhotoURL,
       });
 
-      // Update Firestore with additional fields (e.g., phone number and photo URL)
+      // Update Firestore with additional fields
       const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, {
         phone: profileData.phone,
-        photoURL: downloadURL,
+        birthDate: profileData.birthDate,
+        interests: profileData.interests,
+        photoURL: finalPhotoURL,
       });
 
       setMessage("Profile updated successfully!");
@@ -112,6 +121,19 @@ const ProfilePage = () => {
               className="w-32 h-32 rounded-full object-cover mb-4"
             />
             <input type="file" onChange={handlePicChange} className="mb-4" />
+            <div className="grid grid-cols-5 gap-4 mb-4">
+              {defaultProfilePics.map((url, index) => (
+                <img
+                  key={index}
+                  src={url}
+                  alt={`Default ${index + 1}`}
+                  className={`w-16 h-16 rounded-full object-cover cursor-pointer border-2 ${
+                    profileData.photoURL === url ? "border-[#ff7b54]" : "border-transparent"
+                  }`}
+                  onClick={() => handleDefaultPicSelect(url)}
+                />
+              ))}
+            </div>
           </div>
           <div className="mb-4">
             <label className="block text-[#003049] font-semibold mb-1">
@@ -136,6 +158,31 @@ const ProfilePage = () => {
               onChange={handleChange}
               className="w-full border border-gray-300 p-2 rounded"
             />
+          </div>
+          <div className="mb-4">
+            <label className="block text-[#003049] font-semibold mb-1">
+              Birth Date:
+            </label>
+            <input
+              type="date"
+              name="birthDate"
+              value={profileData.birthDate}
+              onChange={handleChange}
+              className="w-full border border-gray-300 p-2 rounded"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-[#003049] font-semibold mb-1">
+              Interests:
+            </label>
+            <textarea
+              name="interests"
+              value={profileData.interests}
+              onChange={handleChange}
+              rows="3"
+              className="w-full border border-gray-300 p-2 rounded"
+              placeholder="List your interests separated by commas..."
+            ></textarea>
           </div>
           <div className="flex justify-between items-center">
             <button
