@@ -1,3 +1,5 @@
+//i am the developer!!!
+
 import React from "react";
 import { motion } from "framer-motion";
 import { AuthProvider } from "./AuthContext";
