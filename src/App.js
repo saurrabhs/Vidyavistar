@@ -12,7 +12,7 @@ import RegistrationPage from "./RegistrationPage";
 import Dashboard from "./Dashboard";
 import FAQPage from "./FAQPage";
 import RoadmapPage from "./RoadmapPage";
-
+import ProfilePage from "./ProfilePage";
 // Updated Navbar that uses AuthContext to conditionally show LOGIN/LOGOUT and change HOME to DASHBOARD when logged in
 import { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -192,7 +192,7 @@ const App = () => {
               <Route path="/register" element={<RegistrationPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/roadmaps" element={<RoadmapPage />} />
-
+              <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </motion.div>
         </div>
