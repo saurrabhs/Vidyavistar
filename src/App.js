@@ -3,7 +3,6 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { AuthProvider } from "./AuthContext";
-// Import BrowserRouter, Routes, and Route from react-router-dom
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Import your pages
@@ -13,6 +12,10 @@ import Dashboard from "./Dashboard";
 import FAQPage from "./FAQPage";
 import RoadmapPage from "./RoadmapPage";
 import ProfilePage from "./ProfilePage";
+import SettingsPage from "./SettingsPage";
+import MessagesPage from "./MessagesPage";
+import InternshipsPage from "./InternshipsPage";
+
 // Updated Navbar that uses AuthContext to conditionally show LOGIN/LOGOUT and change HOME to DASHBOARD when logged in
 import { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -48,13 +51,14 @@ const Navbar = () => {
       initial={{ opacity: 0, y: -30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
-      className="w-full flex justify-center mt-1"
+      className="w-full flex justify-center py-4" 
+      // Removed margin-top and separate background
     >
       <nav
         className="
-          bg-[#f8e8d8]
-          px-12 py-4
-          mt-10
+          bg-[#f2d9c7]
+          dark:bg-[#0a0909] text-black dark:text-white
+          px-12 py-3
           rounded-full
           shadow-md
           flex items-center gap-12
@@ -66,14 +70,14 @@ const Navbar = () => {
             {item.action ? (
               <button
                 onClick={item.action}
-                className="uppercase font-bold text-2xl text-[#003049] hover:text-[#ff7b54] transition-colors bg-transparent border-none cursor-pointer"
+                className="uppercase font-bold text-2xl text-[#003049] dark:text-white hover:text-[#ff7b54] transition-colors bg-transparent border-none cursor-pointer"
               >
                 {item.name}
               </button>
             ) : (
               <Link
                 to={item.path}
-                className="uppercase font-bold text-2xl text-[#003049] hover:text-[#ff7b54] transition-colors"
+                className="uppercase font-bold text-2xl text-[#003049] dark:text-white hover:text-[#ff7b54] transition-colors"
               >
                 {item.name}
               </Link>
@@ -94,8 +98,8 @@ const HeroSection = () => {
         flex flex-col-reverse md:flex-row
         items-center
         justify-between
-        mt-17
         px-8
+        mt-10
       "
     >
       {/* Left: Headline & Search */}
@@ -108,6 +112,7 @@ const HeroSection = () => {
         <h1
           className="
             text-[#003049]
+            dark:text-white
             font-extrabold
             text-[60px]
             md:text-7xl
@@ -130,16 +135,19 @@ const HeroSection = () => {
             flex items-center
             border-4
             border-[#003049]
+            dark:border-white
             rounded-full
             mt-8
             p-4
             w-full
             md:w-[450px]
             bg-white
+            dark:bg-gray-700
             cursor-text
+            transition-colors
           "
         >
-          <span className="text-3xl text-[#003049] px-3">🔍</span>
+          <span className="text-3xl text-[#003049] dark:text-white px-3">🔍</span>
           <input
             type="text"
             placeholder="Search..."
@@ -149,6 +157,7 @@ const HeroSection = () => {
               w-full
               text-2xl
               text-[#003049]
+              dark:text-white
               bg-transparent
             "
           />
@@ -177,7 +186,11 @@ const App = () => {
   return (
     <AuthProvider>
       <Router>
-        <div className="bg-[#fdf7ee] min-h-screen w-full">
+        {/* 
+          The main container sets the background for the entire site 
+          and toggles to dark mode if the "dark" class is on <html>.
+        */}
+        <div className="bg-[#fdf7ee] dark:bg-gray-900 text-black dark:text-white transition-colors duration-300 min-h-screen">
           <Navbar />
           <motion.div
             initial={{ opacity: 0 }}
@@ -193,6 +206,9 @@ const App = () => {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/roadmaps" element={<RoadmapPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/messages" element={<MessagesPage />} />
+              <Route path="/internships" element={<InternshipsPage />} />
             </Routes>
           </motion.div>
         </div>

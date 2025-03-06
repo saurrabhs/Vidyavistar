@@ -107,12 +107,12 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="bg-[#fdf7ee] min-h-screen py-10">
-      <div className="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-[#003049] mb-6 text-center">
+    <div className="bg-[#fdf7ee] dark:bg-gray-900 dark:text-white min-h-screen py-10 transition-colors duration-300">
+      <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg transition-colors duration-300">
+        <h1 className="text-3xl font-bold text-[#003049] dark:text-white mb-6 text-center">
           Manage Your Profile
         </h1>
-        {message && <p className="text-center text-green-600 mb-4">{message}</p>}
+        {message && <p className="text-center text-green-600 dark:text-green-400 mb-4">{message}</p>}
         <form onSubmit={handleSave}>
           <div className="flex flex-col items-center">
             <img
@@ -120,7 +120,11 @@ const ProfilePage = () => {
               alt="Profile"
               className="w-32 h-32 rounded-full object-cover mb-4"
             />
-            <input type="file" onChange={handlePicChange} className="mb-4" />
+            <input
+              type="file"
+              onChange={handlePicChange}
+              className="mb-4 text-sm text-gray-700 dark:text-gray-200"
+            />
             <div className="grid grid-cols-5 gap-4 mb-4">
               {defaultProfilePics.map((url, index) => (
                 <img
@@ -136,7 +140,7 @@ const ProfilePage = () => {
             </div>
           </div>
           <div className="mb-4">
-            <label className="block text-[#003049] font-semibold mb-1">
+            <label className="block text-[#003049] dark:text-white font-semibold mb-1">
               Name:
             </label>
             <input
@@ -144,11 +148,11 @@ const ProfilePage = () => {
               name="name"
               value={profileData.name}
               onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded"
+              className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
             />
           </div>
           <div className="mb-4">
-            <label className="block text-[#003049] font-semibold mb-1">
+            <label className="block text-[#003049] dark:text-white font-semibold mb-1">
               Phone Number:
             </label>
             <input
@@ -156,11 +160,11 @@ const ProfilePage = () => {
               name="phone"
               value={profileData.phone}
               onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded"
+              className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
             />
           </div>
           <div className="mb-4">
-            <label className="block text-[#003049] font-semibold mb-1">
+            <label className="block text-[#003049] dark:text-white font-semibold mb-1">
               Birth Date:
             </label>
             <input
@@ -168,11 +172,11 @@ const ProfilePage = () => {
               name="birthDate"
               value={profileData.birthDate}
               onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded"
+              className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
             />
           </div>
           <div className="mb-4">
-            <label className="block text-[#003049] font-semibold mb-1">
+            <label className="block text-[#003049] dark:text-white font-semibold mb-1">
               Interests:
             </label>
             <textarea
@@ -180,7 +184,7 @@ const ProfilePage = () => {
               value={profileData.interests}
               onChange={handleChange}
               rows="3"
-              className="w-full border border-gray-300 p-2 rounded"
+              className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
               placeholder="List your interests separated by commas..."
             ></textarea>
           </div>
@@ -188,13 +192,13 @@ const ProfilePage = () => {
             <button
               type="button"
               onClick={handlePasswordReset}
-              className="text-[#ff7b54] underline"
+              className="text-[#ff7b54] dark:text-[#ff7b54] underline"
             >
               Reset Password
             </button>
             <button
               type="submit"
-              className="bg-[#003049] text-white px-6 py-2 rounded-full hover:bg-[#00263c] transition-colors"
+              className="bg-[#003049] dark:bg-[#003049] text-white px-6 py-2 rounded-full hover:bg-[#00263c] transition-colors"
             >
               Save Changes
             </button>

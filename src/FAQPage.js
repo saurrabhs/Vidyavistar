@@ -1,25 +1,26 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
-
 const FAQItem = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="border-b border-gray-300 py-4">
+    <div className="border-b border-gray-300 dark:border-gray-700 py-4">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full text-left flex justify-between items-center focus:outline-none"
       >
-        <span className="text-xl font-semibold text-[#003049]">{question}</span>
-        <span className="text-2xl">{isOpen ? "-" : "+"}</span>
+        <span className="text-xl font-semibold text-[#003049] dark:text-white">
+          {question}
+        </span>
+        <span className="text-2xl dark:text-white">{isOpen ? "-" : "+"}</span>
       </button>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           transition={{ duration: 0.3 }}
-          className="mt-2 text-gray-700"
+          className="mt-2 text-gray-700 dark:text-gray-300"
         >
           {answer}
         </motion.div>
@@ -108,9 +109,9 @@ const FAQPage = () => {
   ];
 
   return (
-    <div className="bg-[#fdf7ee] min-h-screen w-full py-10">
+    <div className="bg-[#fdf7ee] dark:bg-gray-900 min-h-screen w-full py-10">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-[#003049] text-center mb-8">
+        <h1 className="text-4xl font-bold text-[#003049] dark:text-white text-center mb-8">
           Frequently Asked Questions
         </h1>
         <div className="space-y-4">

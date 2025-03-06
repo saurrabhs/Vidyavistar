@@ -81,7 +81,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="bg-[#fdf7ee] min-h-screen w-full">
+    <div className="bg-[#fdf7ee] min-h-screen w-full dark:bg-gray-900 text-black dark:text-white">
       {/* Main Container */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-8 mt-10">
         {/* Left: Illustration */}
@@ -170,7 +170,7 @@ const LoginPage = () => {
         </motion.div>
       </div>
 
-      <h1 className="text-[#003049] text-4xl md:text-5xl font-bold mb-6 mt-10 text-center">
+      <h1 className="text-[#003049] text-4xl md:text-5xl font-bold mb-6 mt-10 text-center dark:bg-gray-900 text-black dark:text-white">
         Step Toward Your Future!
       </h1>
     </div>
