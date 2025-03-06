@@ -10,7 +10,6 @@ import LoginPage from "./LoginPage";
 import RegistrationPage from "./RegistrationPage";
 import Dashboard from "./Dashboard";
 import FAQPage from "./FAQPage";
-import RoadmapPage from "./RoadmapPage";
 import ProfilePage from "./ProfilePage";
 import SettingsPage from "./SettingsPage";
 import MessagesPage from "./MessagesPage";
@@ -20,6 +19,8 @@ import CareerPathsPage from "./CareerPathsPage";
 import ProVPage from "./ProVPage";
 import CollegesPage from "./CollegesPage";
 import CollegeSearch from './components/CollegeSearch';
+import ScholarshipsPage from './ScholarshipsPage';
+import AICounselorPage from "./AICounselorPage";
 
 // Updated Navbar that uses AuthContext to conditionally show LOGIN/LOGOUT and change HOME to DASHBOARD when logged in
 import { useContext } from "react";
@@ -34,7 +35,7 @@ const Navbar = () => {
   const menuItems = [
     { name: currentUser ? "DASHBOARD" : "HOME", path: currentUser ? "/dashboard" : "/" },
     { name: "PRO-V", path: "/prov" },
-    { name: "ROADMAPS", path: "/roadmaps" },
+    { name: "AI COUNSELLING", path: "/ai-counselling" },
     { name: "FAQ", path: "/faq" },
     currentUser
       ? {
@@ -208,7 +209,7 @@ const App = () => {
               <Route path="/register" element={<RegistrationPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/faq" element={<FAQPage />} />
-              <Route path="/roadmaps" element={<RoadmapPage />} />
+              <Route path="/ai-counselling" element={<AICounselorPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/messages" element={<MessagesPage />} />
@@ -218,6 +219,7 @@ const App = () => {
               <Route path="/prov" element={<ProVPage />} />
               <Route path="/colleges" element={<CollegesPage />} />
               <Route path="/college-search" element={<CollegeSearch />} />
+              <Route path="/scholarships" element={<ScholarshipsPage />} />
             </Routes>
           </motion.div>
         </div>

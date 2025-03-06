@@ -16,6 +16,7 @@ import {
   FaChevronLeft,
   FaCompass,
   FaUniversity,
+  FaGraduationCap,
 } from "react-icons/fa";
 
 const Dashboard = () => {
@@ -198,6 +199,17 @@ const Dashboard = () => {
                 <FaBriefcase className="text-xl" />
                 {!collapsed && (
                   <span className="ml-4 text-sm font-semibold">Career Paths</span>
+                )}
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/scholarships"
+                className="flex items-center p-2 rounded-md hover:bg-[#f2d9c7] dark:hover:bg-gray-700 transition-colors"
+              >
+                <FaGraduationCap className="text-xl" />
+                {!collapsed && (
+                  <span className="ml-4 text-sm font-semibold">Scholarships</span>
                 )}
               </Link>
             </li>

@@ -34,6 +34,9 @@ const ProfilePage = () => {
     academicYear: currentUser?.academicYear || ""
   });
 
+  // Get auth token from localStorage
+  const getAuthToken = () => localStorage.getItem('token');
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name.includes('.')) {
@@ -54,24 +57,61 @@ const ProfilePage = () => {
       formData.append("profilePicture", file);
 
       try {
-        const response = await axios.post("http://localhost:4000/api/users/upload-profile-picture", formData, {
-          headers: { "Content-Type": "multipart/form-data" }
-        });
-        setProfileData(prev => ({ ...prev, profilePicture: response.data.profilePicture }));
-        setMessage("Profile picture updated successfully!");
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await axios.post(
+          "http://localhost:5000/api/users/upload-profile-picture", 
+          formData,
+          {
+            headers: { 
+              "Content-Type": "multipart/form-data",
+              "Authorization": `Bearer ${token}`
+            }
+          }
+        );
+        
+        if (response.data.profilePicture) {
+          setProfileData(prev => ({ ...prev, profilePicture: response.data.profilePicture }));
+          setMessage("Profile picture updated successfully!");
+        } else {
+          throw new Error('Invalid response from server');
+        }
       } catch (error) {
-        setMessage("Failed to upload profile picture");
+        console.error('Upload error:', error);
+        setMessage(error.response?.data?.error || "Failed to upload profile picture");
       }
     }
   };
 
   const handleDefaultPicSelect = async (url) => {
     try {
-      await axios.post("http://localhost:4000/api/users/update-profile-picture", { profilePicture: url });
-      setProfileData(prev => ({ ...prev, profilePicture: url }));
-      setMessage("Profile picture updated successfully!");
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await axios.post(
+        "http://localhost:5000/api/users/update-profile-picture", 
+        { profilePicture: url },
+        {
+          headers: { 
+            "Authorization": `Bearer ${token}`
+          }
+        }
+      );
+      
+      if (response.data.profilePicture) {
+        setProfileData(prev => ({ ...prev, profilePicture: url }));
+        setMessage("Profile picture updated successfully!");
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (error) {
-      setMessage("Failed to update profile picture");
+      console.error('Update error:', error);
+      setMessage(error.response?.data?.error || "Failed to update profile picture");
     }
   };
 
@@ -88,14 +128,30 @@ const ProfilePage = () => {
 
   return (
     <div className="bg-[#fdf7ee] dark:bg-gray-900 dark:text-white min-h-screen py-10 transition-colors duration-300">
-      <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-[#003049] dark:text-white mb-6 text-center">Profile Settings</h1>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg"
+      >
+        <motion.h1 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-3xl font-bold text-[#003049] dark:text-white mb-6 text-center"
+        >
+          Profile Settings
+        </motion.h1>
         {message && (
-          <div className={`text-center mb-4 p-3 rounded ${
-            message.includes("Failed") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
-          }`}>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`text-center mb-4 p-3 rounded ${
+              message.includes("Failed") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+            }`}
+          >
             {message}
-          </div>
+          </motion.div>
         )}
         
         <form onSubmit={handleSave} className="space-y-6">
@@ -104,7 +160,7 @@ const ProfilePage = () => {
             <img
               src={profileData.profilePicture.startsWith("/images") 
                 ? profileData.profilePicture 
-                : `http://localhost:4000${profileData.profilePicture}`}
+                : `http://localhost:5000${profileData.profilePicture}`}
               alt="Profile"
               className="w-32 h-32 rounded-full object-cover mb-4"
             />
@@ -132,7 +188,14 @@ const ProfilePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Basic Information */}
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-[#003049] dark:text-white">Basic Information</h2>
+              <motion.h2 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="text-xl font-semibold text-[#003049] dark:text-white"
+              >
+                Basic Information
+              </motion.h2>
               
               <div>
                 <label className="block text-sm font-medium mb-1">Name</label>
@@ -195,7 +258,14 @@ const ProfilePage = () => {
 
             {/* Academic Information */}
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-[#003049] dark:text-white">Academic Information</h2>
+              <motion.h2 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-xl font-semibold text-[#003049] dark:text-white"
+              >
+                Academic Information
+              </motion.h2>
               
               <div>
                 <label className="block text-sm font-medium mb-1">Academic Year</label>
@@ -251,8 +321,20 @@ const ProfilePage = () => {
           </div>
 
           {/* Additional Information */}
-          <div className="space-y-4 mt-6">
-            <h2 className="text-xl font-semibold text-[#003049] dark:text-white">Additional Information</h2>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="space-y-4 mt-6"
+          >
+            <motion.h2 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-xl font-semibold text-[#003049] dark:text-white"
+            >
+              Additional Information
+            </motion.h2>
             
             <div>
               <label className="block text-sm font-medium mb-1">Bio</label>
@@ -314,18 +396,23 @@ const ProfilePage = () => {
                 />
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex justify-end mt-6">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="flex justify-end mt-6"
+          >
             <button
               type="submit"
               className="bg-[#003049] text-white px-6 py-2 rounded-full hover:bg-[#00263c] transition-colors"
             >
               Save Changes
             </button>
-          </div>
+          </motion.div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };
