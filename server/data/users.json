@@ -1,0 +1,20 @@
+[
+  {
+    "_id": "1741268209208",
+    "name": "saurabh",
+    "email": "this.is.saurabh01@gmail.com",
+    "password": "$2a$10$P3lz/ppch5YmVp6t7tA1WOFMbxyr2kfn2WXFC3stSBQeFqpA339nW",
+    "role": "student",
+    "createdAt": "2025-03-06T13:36:49.208Z",
+    "profilePicture": "/uploads/1741268254008-DSC_1561.jpg"
+  },
+  {
+    "_id": "1741269292358",
+    "name": "Satyam Yadav",
+    "email": "satyamyadav6286@gmail.com",
+    "password": "$2a$10$JzWomnS0pmbxSTF9Y7Q9BulkTSp0JO6fWv0x.aILDAh/58eVXfLbW",
+    "role": "student",
+    "createdAt": "2025-03-06T13:54:52.358Z",
+    "profilePicture": "/uploads/1741270459527-default5.png"
+  }
+]

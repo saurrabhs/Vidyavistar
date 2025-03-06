@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { auth } from "./firebaseConfig"; // Make sure this is your correct auth import
+import { AuthContext } from "./AuthContext";
 import {
   MdNotifications,
   MdOutlineSearch,
@@ -11,26 +11,17 @@ import {
 } from "react-icons/md";
 import {
   FaUser,
-  FaChalkboardTeacher,
   FaBuilding,
   FaBriefcase,
   FaChevronLeft,
+  FaCompass,
+  FaUniversity,
 } from "react-icons/fa";
 
 const Dashboard = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-
-  // We'll store the user photo from auth.currentUser.photoURL here
-  const [userPhoto, setUserPhoto] = useState("");
-
-  // On mount, grab the current user's photoURL (if any)
-  useEffect(() => {
-    const currentUser = auth.currentUser;
-    if (currentUser && currentUser.photoURL) {
-      setUserPhoto(currentUser.photoURL);
-    }
-  }, []);
+  const { currentUser } = useContext(AuthContext);
 
   // Toggle the right-side notification drawer
   const toggleNotifications = () => {
@@ -129,13 +120,26 @@ const Dashboard = () => {
           {!collapsed && (
             <div className="flex items-center space-x-3">
               <img
-                src={userPhoto || "/images/default1.png"}
+                src={currentUser?.profilePicture ? `http://localhost:4000${currentUser.profilePicture}` : "/images/default1.png"}
                 alt="User Pic"
                 className="w-10 h-10 rounded-full object-cover"
               />
-              <h2 className="text-lg font-bold whitespace-nowrap">Vidyavistar</h2>
+              <h2 className="text-lg font-bold whitespace-nowrap">
+                {currentUser?.name || "User"}
+              </h2>
             </div>
           )}
+          {/* Collapse Toggle Button */}
+          <button
+            onClick={toggleSidebar}
+            className="p-1 hover:bg-[#e5c3a8] rounded-full focus:outline-none"
+          >
+            <FaChevronLeft
+              className={`transform transition-transform duration-300 ${
+                collapsed ? "rotate-180" : ""
+              }`}
+            />
+          </button>
         </div>
 
         {/* Sidebar Search */}
@@ -193,20 +197,18 @@ const Dashboard = () => {
               >
                 <FaBriefcase className="text-xl" />
                 {!collapsed && (
-                  <span className="ml-4 text-sm font-semibold">
-                    Career Paths
-                  </span>
+                  <span className="ml-4 text-sm font-semibold">Career Paths</span>
                 )}
               </Link>
             </li>
             <li>
               <Link
-                to="/guidance"
+                to="/colleges"
                 className="flex items-center p-2 rounded-md hover:bg-[#f2d9c7] dark:hover:bg-gray-700 transition-colors"
               >
-                <FaChalkboardTeacher className="text-xl" />
+                <FaUniversity className="text-xl" />
                 {!collapsed && (
-                  <span className="ml-4 text-sm font-semibold">Guidance</span>
+                  <span className="ml-4 text-sm font-semibold">Colleges</span>
                 )}
               </Link>
             </li>
@@ -223,6 +225,17 @@ const Dashboard = () => {
             </li>
             <li>
               <Link
+                to="/guidance"
+                className="flex items-center p-2 rounded-md hover:bg-[#f2d9c7] dark:hover:bg-gray-700 transition-colors"
+              >
+                <FaCompass className="text-xl" />
+                {!collapsed && (
+                  <span className="ml-4 text-sm font-semibold">Guidance</span>
+                )}
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/settings"
                 className="flex items-center p-2 rounded-md hover:bg-[#f2d9c7] dark:hover:bg-gray-700 transition-colors"
               >
@@ -234,21 +247,6 @@ const Dashboard = () => {
             </li>
           </ul>
         </nav>
-
-        {/* Sidebar Footer / Collapse Button */}
-        <div className="px-4 py-4 bg-[#f2d9c7] dark:bg-gray-700 flex items-center justify-center">
-          <button
-            onClick={toggleSidebar}
-            className="flex items-center space-x-2 text-sm font-semibold bg-[#f5cbb6] dark:bg-gray-600 hover:bg-[#f2bfa2] dark:hover:bg-gray-500 px-3 py-2 rounded-md transition-colors"
-          >
-            <FaChevronLeft
-              className={`transform transition-transform ${
-                collapsed ? "rotate-180" : ""
-              }`}
-            />
-            {!collapsed && <span>Collapse</span>}
-          </button>
-        </div>
       </div>
 
       {/* Main Dashboard Content */}
@@ -289,7 +287,7 @@ const Dashboard = () => {
           </div>
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col items-start space-y-2">
             <div className="flex items-center space-x-2">
-              <FaChalkboardTeacher className="text-3xl text-[#003049] dark:text-white" />
+              <FaCompass className="text-3xl text-[#003049] dark:text-white" />
               <h2 className="text-2xl font-bold text-[#003049] dark:text-white">
                 Guidance
               </h2>

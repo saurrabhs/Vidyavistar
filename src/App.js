@@ -15,6 +15,11 @@ import ProfilePage from "./ProfilePage";
 import SettingsPage from "./SettingsPage";
 import MessagesPage from "./MessagesPage";
 import InternshipsPage from "./InternshipsPage";
+import GuidancePage from "./GuidancePage";
+import CareerPathsPage from "./CareerPathsPage";
+import ProVPage from "./ProVPage";
+import CollegesPage from "./CollegesPage";
+import CollegeSearch from './components/CollegeSearch';
 
 // Updated Navbar that uses AuthContext to conditionally show LOGIN/LOGOUT and change HOME to DASHBOARD when logged in
 import { useContext } from "react";
@@ -199,16 +204,20 @@ const App = () => {
           >
             <Routes>
               <Route path="/" element={<HeroSection />} />
-              <Route path="/prov" element={<div>PRO-V Page Placeholder</div>} />
-              <Route path="/faq" element={<FAQPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegistrationPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/faq" element={<FAQPage />} />
               <Route path="/roadmaps" element={<RoadmapPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/messages" element={<MessagesPage />} />
               <Route path="/internships" element={<InternshipsPage />} />
+              <Route path="/guidance" element={<GuidancePage />} />
+              <Route path="/career-paths" element={<CareerPathsPage />} />
+              <Route path="/prov" element={<ProVPage />} />
+              <Route path="/colleges" element={<CollegesPage />} />
+              <Route path="/college-search" element={<CollegeSearch />} />
             </Routes>
           </motion.div>
         </div>
