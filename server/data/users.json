@@ -29,7 +29,21 @@
     "password": "$2a$10$JzWomnS0pmbxSTF9Y7Q9BulkTSp0JO6fWv0x.aILDAh/58eVXfLbW",
     "role": "student",
     "createdAt": "2025-03-06T13:54:52.358Z",
-    "profilePicture": "/images/default5.png"
+    "profilePicture": "/images/default3.png",
+    "phone": "",
+    "birthDate": "",
+    "interests": "",
+    "education": "",
+    "skills": "",
+    "languages": "",
+    "location": "",
+    "bio": "",
+    "socialLinks": {
+      "linkedin": "",
+      "github": ""
+    },
+    "gender": "",
+    "academicYear": ""
   },
   {
     "_id": "1741306024888",
