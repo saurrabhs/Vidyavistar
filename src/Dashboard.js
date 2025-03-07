@@ -269,57 +269,65 @@ const Dashboard = () => {
         }}
         className="mt-4 p-4"
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col items-start space-y-2">
-            <div className="flex items-center space-x-2">
-              <FaBriefcase className="text-3xl text-[#003049] dark:text-white" />
-              <h2 className="text-2xl font-bold text-[#003049] dark:text-white">
-                Career Paths
-              </h2>
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-[#003049] mb-2">Welcome back, {currentUser?.name || "saurabh"}! 👋</h2>
+        </div>
+
+        {/* NEP 2024-25 Section */}
+        <div className="bg-[#f0f7ff] rounded-xl p-6 mb-8">
+          <h2 className="text-2xl font-bold text-[#003049] mb-4">NEP 2024-25: Transforming Indian Education</h2>
+          
+          <p className="text-gray-700 mb-6">
+            The New Education Policy 2024-25 introduces groundbreaking reforms to make Indian education more flexible, inclusive, and comprehensive. 
+            The traditional 10+2 structure has been transformed into a dynamic 5+3+3+4 system, aligning education with developmental stages.
+          </p>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-lg font-semibold text-[#003049] mb-3">Key Features:</h3>
+              <ul className="space-y-2 text-gray-700">
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  Multiple attempts for board exams
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  Multidisciplinary learning approach
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  Early childhood education focus
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  Integrated vocational training
+                </li>
+              </ul>
             </div>
-            <p className="text-gray-700 dark:text-gray-300">
-              Explore various career paths tailored to your interests and skills.
-            </p>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col items-start space-y-2">
-            <div className="flex items-center space-x-2">
-              <FaUser className="text-3xl text-[#003049] dark:text-white" />
-              <h2 className="text-2xl font-bold text-[#003049] dark:text-white">
-                My Profile
-              </h2>
+
+            <div>
+              <h3 className="text-lg font-semibold text-[#003049] mb-3">New Structure:</h3>
+              <ul className="space-y-2 text-gray-700">
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  Foundational (Age 3-8)
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  Preparatory (Age 8-11)
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  Middle (Age 11-14)
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  Secondary (Age 14-18)
+                </li>
+              </ul>
             </div>
-            <p className="text-gray-700 dark:text-gray-300">
-              Update your profile information and see your progress.
-            </p>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col items-start space-y-2">
-            <div className="flex items-center space-x-2">
-              <FaCompass className="text-3xl text-[#003049] dark:text-white" />
-              <h2 className="text-2xl font-bold text-[#003049] dark:text-white">
-                Guidance
-              </h2>
-            </div>
-            <p className="text-gray-700 dark:text-gray-300">
-              Access personalized career guidance and mentorship resources.
-            </p>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col items-start space-y-2">
-            <div className="flex items-center space-x-2">
-              <FaBuilding className="text-3xl text-[#003049] dark:text-white" />
-              <h2 className="text-2xl font-bold text-[#003049] dark:text-white">
-                Internships
-              </h2>
-            </div>
-            <p className="text-gray-700 dark:text-gray-300">
-              Discover internship opportunities to kickstart your career.
-            </p>
-          </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

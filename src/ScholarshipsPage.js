@@ -41,6 +41,46 @@ const scholarships = [
     eligibility: "Female students in technical education",
     description: "Scholarship scheme for girl students in AICTE approved institutions.",
     link: "https://www.aicte-india.org/pragati"
+  },
+  {
+    id: 5,
+    name: "Central Sector Scholarship",
+    provider: "Ministry of Education",
+    amount: "₹60,000 per year",
+    deadline: "2025-05-20",
+    eligibility: "Students from low income families with excellent academic records",
+    description: "Scholarship for economically weaker students who have secured top positions in their board exams.",
+    link: "https://scholarships.gov.in/central-sector"
+  },
+  {
+    id: 6,
+    name: "INSPIRE Scholarship",
+    provider: "Department of Science & Technology",
+    amount: "₹80,000 per year",
+    deadline: "2025-06-15",
+    eligibility: "Students pursuing basic and natural sciences",
+    description: "Scholarship to attract talent for studying natural and basic sciences at undergraduate level.",
+    link: "https://online-inspire.gov.in"
+  },
+  {
+    id: 7,
+    name: "GATE Scholarship",
+    provider: "Ministry of Education",
+    amount: "₹12,400 per month",
+    deadline: "2025-07-01",
+    eligibility: "GATE qualified students pursuing M.Tech/M.E",
+    description: "Monthly stipend for postgraduate students in engineering who have qualified GATE.",
+    link: "https://gate.iitd.ac.in"
+  },
+  {
+    id: 8,
+    name: "Kishore Vaigyanik Protsahan Yojana",
+    provider: "Department of Science & Technology",
+    amount: "₹5,000-7,000 per month",
+    deadline: "2025-06-30",
+    eligibility: "Students pursuing basic science courses at UG and PG level",
+    description: "Program to encourage students to take up research careers in basic sciences.",
+    link: "https://kvpy.iisc.ac.in"
   }
 ];
 
