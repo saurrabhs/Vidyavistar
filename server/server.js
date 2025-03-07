@@ -9,10 +9,15 @@ const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5002;
+
+// CORS configuration
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true
+}));
 
 // Middleware
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -21,23 +26,28 @@ app.use(express.static(path.join(__dirname, 'public')));
 const uploadsDir = path.join(__dirname, 'uploads');
 const dataDir = path.join(__dirname, 'data');
 
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
-// Initialize users.json if it doesn't exist
-const USERS_FILE = path.join(__dirname, 'data', 'users.json');
-if (!fs.existsSync(USERS_FILE)) {
-  fs.writeFileSync(USERS_FILE, JSON.stringify([]));
-}
+// Ensure directories exist
+(async () => {
+  try {
+    await fsPromises.mkdir(uploadsDir, { recursive: true });
+    await fsPromises.mkdir(dataDir, { recursive: true });
+    
+    // Initialize users.json if it doesn't exist
+    const USERS_FILE = path.join(dataDir, 'users.json');
+    try {
+      await fsPromises.access(USERS_FILE);
+    } catch {
+      await fsPromises.writeFile(USERS_FILE, '[]');
+    }
+  } catch (error) {
+    console.error('Error creating directories:', error);
+  }
+})();
 
 // Helper functions for file-based storage
 const readUsers = async () => {
   try {
-    const data = await fsPromises.readFile(USERS_FILE, 'utf8');
+    const data = await fsPromises.readFile(path.join(dataDir, 'users.json'), 'utf8');
     return JSON.parse(data);
   } catch (error) {
     console.error('Error reading users:', error);
@@ -46,7 +56,7 @@ const readUsers = async () => {
 };
 
 const writeUsers = async (users) => {
-  await fsPromises.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
+  await fsPromises.writeFile(path.join(dataDir, 'users.json'), JSON.stringify(users, null, 2));
 };
 
 const findUserById = async (id) => {
@@ -120,6 +130,10 @@ app.use('/api/colleges', collegeRoutes);
 const chatgptRoutes = require('./routes/chatgpt');
 app.use('/api/chatgpt', chatgptRoutes);
 
+// AI Learning routes
+const aiLearningRoutes = require('./routes/aiLearning');
+app.use('/api/ai', aiLearningRoutes);
+
 // Basic route for testing
 app.get('/', (req, res) => {
   res.json({ message: 'Server is running' });
@@ -130,10 +144,14 @@ app.post('/api/users/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
     
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+    
     // Check if user already exists
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ error: 'User already exists' });
     }
     
     // Hash password
@@ -160,7 +178,8 @@ app.post('/api/users/register', async (req, res) => {
     const { password: _, ...userWithoutPassword } = user;
     res.status(201).json({ user: userWithoutPassword, token });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Registration error:', error);
+    res.status(500).json({ error: 'Failed to register user' });
   }
 });
 
@@ -169,16 +188,20 @@ app.post('/api/users/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+    
     // Find user
     const user = await findUserByEmail(email);
     if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ error: 'Invalid credentials' });
     }
     
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ error: 'Invalid credentials' });
     }
     
     // Generate token
@@ -188,7 +211,8 @@ app.post('/api/users/login', async (req, res) => {
     const { password: _, ...userWithoutPassword } = user;
     res.json({ user: userWithoutPassword, token });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Failed to login' });
   }
 });
 
@@ -312,6 +336,23 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server running on port ${port}`);
+}).on('error', (error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  console.error('Server error:', error);
+});
+
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled rejection:', error);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught exception:', error);
+  process.exit(1);
 });

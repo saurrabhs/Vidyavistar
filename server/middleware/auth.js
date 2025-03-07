@@ -1,25 +1,27 @@
 const jwt = require('jsonwebtoken');
+const { readUsers } = require('../utils/userUtils');
 
-const auth = (req, res, next) => {
+const auth = async (req, res, next) => {
   try {
-    // Get token from header
     const token = req.header('Authorization')?.replace('Bearer ', '');
-    
     if (!token) {
-      return res.status(401).json({ message: 'No authentication token, access denied' });
+      throw new Error('No authentication token provided');
     }
 
-    // Verify token
-    const verified = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+    const users = await readUsers();
+    const user = users.find(u => u._id === decoded._id);
     
-    if (!verified) {
-      return res.status(401).json({ message: 'Token verification failed, access denied' });
+    if (!user) {
+      throw new Error('User not found');
     }
-
-    req.user = verified;
+    
+    req.token = token;
+    req.user = user;
     next();
-  } catch (err) {
-    res.status(401).json({ message: 'Invalid token, access denied' });
+  } catch (e) {
+    console.error('Authentication error:', e.message);
+    res.status(401).json({ error: 'Please authenticate.' });
   }
 };
 

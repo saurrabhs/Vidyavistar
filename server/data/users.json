@@ -30,5 +30,13 @@
     "role": "student",
     "createdAt": "2025-03-06T13:54:52.358Z",
     "profilePicture": "/images/default5.png"
+  },
+  {
+    "_id": "1741306024888",
+    "name": "Test User",
+    "email": "test@example.com",
+    "password": "$2a$10$MzUBMsBvny2s8Q9m0N4nQOq9VfRy9Kl.SPx2ZsJooTpJUBeNG6EX2",
+    "role": "student",
+    "createdAt": "2025-03-07T00:07:04.888Z"
   }
 ]
