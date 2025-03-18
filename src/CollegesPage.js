@@ -8,13 +8,30 @@ const CollegesPage = () => {
     branch: '',
     category: 'OPEN',
     location: '',
-    collegeType: ''
+    collegeType: '',
+    page: 1,
+    limit: 10
   });
 
-  const [results, setResults] = useState([]);
-  const [allColleges, setAllColleges] = useState([]);
+  const [results, setResults] = useState({ results: [], totalPages: 1, currentPage: 1, totalResults: 0 });
+  const [allColleges, setAllColleges] = useState({ results: [], totalPages: 1, currentPage: 1, totalResults: 0 });
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const locations = [
+    'Mumbai',
+    'Pune',
+    'Nagpur',
+    'Nashik',
+    'Aurangabad',
+    'Amravati',
+    'Solapur',
+    'Kolhapur',
+    'Satara',
+    'Thane',
+    'Navi Mumbai'
+  ];
 
   const branches = [
     'Computer Engineering',
@@ -49,17 +66,23 @@ const CollegesPage = () => {
     'Autonomous'
   ];
 
-  // Fetch all colleges when component mounts
   useEffect(() => {
     fetchAllColleges();
   }, []);
 
   const fetchAllColleges = async () => {
+    setInitialLoading(true);
+    setError('');
     try {
-      const response = await axios.get('http://localhost:5000/api/colleges');
+      const response = await axios.get('http://localhost:5001/api/colleges', {
+        params: { page: 1, limit: 10 }
+      });
       setAllColleges(response.data);
     } catch (err) {
       console.error('Error fetching colleges:', err);
+      setError('Failed to load colleges. Please refresh the page.');
+    } finally {
+      setInitialLoading(false);
     }
   };
 
@@ -67,7 +90,8 @@ const CollegesPage = () => {
     const { name, value } = e.target;
     setSearchParams(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
+      page: 1 // Reset page when changing filters
     }));
   };
 
@@ -77,7 +101,7 @@ const CollegesPage = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/colleges/search', searchParams);
+      const response = await axios.post('http://localhost:5001/api/colleges/search', searchParams);
       setResults(response.data);
     } catch (err) {
       setError('Failed to fetch colleges. Please try again.');
@@ -85,6 +109,13 @@ const CollegesPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    setSearchParams(prev => ({
+      ...prev,
+      page: newPage
+    }));
   };
 
   const CollegeCard = ({ college, showEligibility = false }) => (
@@ -138,62 +169,40 @@ const CollegesPage = () => {
           Available Branches
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {college.branches.map((branch) => (
-            <div 
-              key={branch.branchName} 
-              className={`bg-gray-50 p-4 rounded-lg border ${
-                showEligibility && searchParams.percentile && 
-                parseFloat(searchParams.percentile) >= branch.cutoffs[searchParams.category]
-                  ? 'border-green-200 bg-green-50'
-                  : 'border-gray-100'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <p className="font-medium text-[#003049]">{branch.branchName}</p>
-                {showEligibility && searchParams.percentile && (
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    parseFloat(searchParams.percentile) >= branch.cutoffs[searchParams.category]
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {parseFloat(searchParams.percentile) >= branch.cutoffs[searchParams.category]
-                      ? 'Eligible'
-                      : 'Not Eligible'
-                    }
-                  </span>
-                )}
-              </div>
-              
-              {showEligibility ? (
-                <>
-                  <p className="text-sm text-gray-600 mt-2">
-                    Cutoff ({searchParams.category}): {branch.cutoffs[searchParams.category]}
-                  </p>
-                  {searchParams.percentile && (
-                    <p className={`text-sm mt-1 ${
-                      parseFloat(searchParams.percentile) >= branch.cutoffs[searchParams.category]
-                        ? 'text-green-600'
-                        : 'text-red-600'
+          {college.branches.map((branch) => {
+            const isEligible = showEligibility && 
+              searchParams.percentile && 
+              parseFloat(searchParams.percentile) >= branch.cutoffs[searchParams.category];
+            
+            return (
+              <div 
+                key={branch.branchName} 
+                className={`p-4 rounded-lg border ${
+                  showEligibility && searchParams.percentile
+                    ? isEligible
+                      ? 'border-green-500 bg-green-50 shadow-md'
+                      : 'border-red-500 bg-red-50 shadow-md'
+                    : 'border-gray-100 bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-medium text-[#003049]">{branch.branchName}</p>
+                  {showEligibility && searchParams.percentile && (
+                    <span className={`text-sm font-semibold px-3 py-1 rounded-full ${
+                      isEligible
+                        ? 'bg-green-200 text-green-800'
+                        : 'bg-red-200 text-red-800'
                     }`}>
-                      {parseFloat(searchParams.percentile) >= branch.cutoffs[searchParams.category]
-                        ? `You cleared the cutoff by ${(parseFloat(searchParams.percentile) - branch.cutoffs[searchParams.category]).toFixed(2)} points`
-                        : `You need ${(branch.cutoffs[searchParams.category] - parseFloat(searchParams.percentile)).toFixed(2)} more points`
-                      }
-                    </p>
+                      {isEligible ? 'Eligible' : 'Not Eligible'}
+                    </span>
                   )}
-                </>
-              ) : (
-                <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
-                  {Object.entries(branch.cutoffs).map(([cat, cutoff]) => (
-                    <div key={cat} className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">{cat}:</span>
-                      <span className="font-medium">{cutoff}</span>
-                    </div>
-                  ))}
                 </div>
-              )}
-            </div>
-          ))}
+                <div className="text-sm text-gray-600">
+                  Cutoff: {branch.cutoffs[searchParams.category]}%
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -298,19 +307,22 @@ const CollegesPage = () => {
               </select>
             </div>
 
-            {/* Location Input */}
+            {/* Location Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Preferred Location
               </label>
-              <input
-                type="text"
+              <select
                 name="location"
                 value={searchParams.location}
                 onChange={handleInputChange}
-                placeholder="Enter city or district"
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-[#003049] focus:border-transparent"
-              />
+              >
+                <option value="">All Locations</option>
+                {locations.map(location => (
+                  <option key={location} value={location}>{location}</option>
+                ))}
+              </select>
             </div>
 
             {/* College Type Selection */}
@@ -324,6 +336,7 @@ const CollegesPage = () => {
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-[#003049] focus:border-transparent"
               >
+                <option value="">All Types</option>
                 {collegeTypes.map(type => (
                   <option key={type} value={type}>{type}</option>
                 ))}
@@ -357,7 +370,7 @@ const CollegesPage = () => {
         )}
 
         {/* Search Results Section */}
-        {results.length > 0 && (
+        {results.results.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -365,17 +378,36 @@ const CollegesPage = () => {
             className="space-y-6 mb-12"
           >
             <h2 className="text-2xl font-semibold text-[#003049] mb-4">
-              Search Results ({results.length} colleges found)
+              Search Results ({results.totalResults} colleges found)
             </h2>
             <div className="space-y-6">
-              {results.map((college) => (
-                <CollegeCard 
-                  key={college._id} 
+              {results.results.map((college) => (
+                <CollegeCard
+                  key={college._id}
                   college={college}
                   showEligibility={true}
                 />
               ))}
             </div>
+            
+            {/* Pagination for Search Results */}
+            {results.totalPages > 1 && (
+              <div className="flex justify-center gap-2 mt-4">
+                {Array.from({ length: results.totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-4 py-2 rounded ${
+                      page === results.currentPage
+                        ? 'bg-[#003049] text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -387,17 +419,53 @@ const CollegesPage = () => {
           className="space-y-6"
         >
           <h2 className="text-2xl font-semibold text-[#003049] mb-4">
-            All Colleges ({allColleges.length})
+            All Colleges {!initialLoading && `(${allColleges.totalResults})`}
           </h2>
-          <div className="grid grid-cols-1 gap-6">
-            {allColleges.map((college) => (
-              <CollegeCard 
-                key={college._id} 
-                college={college}
-                showEligibility={false}
-              />
-            ))}
-          </div>
+          
+          {initialLoading ? (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#003049] border-t-transparent"></div>
+              <p className="mt-2 text-gray-600">Loading colleges...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-600">
+              {error}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-6">
+                {allColleges.results.map((college) => (
+                  <CollegeCard 
+                    key={college._id} 
+                    college={college}
+                    showEligibility={false}
+                  />
+                ))}
+              </div>
+              
+              {/* Pagination for All Colleges */}
+              {allColleges.totalPages > 1 && (
+                <div className="flex justify-center gap-2 mt-8">
+                  {Array.from({ length: allColleges.totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => {
+                        setAllColleges(prev => ({ ...prev, currentPage: page }));
+                        fetchAllColleges();
+                      }}
+                      className={`px-4 py-2 rounded ${
+                        page === allColleges.currentPage
+                          ? 'bg-[#003049] text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </motion.div>
       </div>
     </div>

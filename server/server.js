@@ -11,15 +11,18 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5002;
 
-// CORS configuration
+// Enhanced CORS configuration
 app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  maxAge: 86400 // 24 hours
 }));
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Create necessary directories
@@ -133,6 +136,10 @@ app.use('/api/chatgpt', chatgptRoutes);
 // AI Learning routes
 const aiLearningRoutes = require('./routes/aiLearning');
 app.use('/api/ai', aiLearningRoutes);
+
+// AI routes
+const aiRoutes = require('./routes/aiRoutes');
+app.use('/api/ai', aiRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
@@ -322,6 +329,64 @@ app.post('/api/users/update-profile-picture', auth, async (req, res) => {
   } catch (error) {
     console.error('Error updating profile picture:', error);
     res.status(500).json({ error: 'Failed to update profile picture' });
+  }
+});
+
+// Authentication routes
+app.post('/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+    
+    // Find user
+    const user = await findUserByEmail(email);
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid credentials' });
+    }
+    
+    // Check password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Invalid credentials' });
+    }
+    
+    // Generate token with 7-day expiration
+    const token = jwt.sign(
+      { _id: user._id }, 
+      process.env.JWT_SECRET || 'your_jwt_secret',
+      { expiresIn: '7d' }
+    );
+    
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user;
+    res.json({ user: userWithoutPassword, token });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Failed to login' });
+  }
+});
+
+app.get('/auth/status', auth, async (req, res) => {
+  try {
+    const { password: _, ...userWithoutPassword } = req.user;
+    res.json({ user: userWithoutPassword });
+  } catch (error) {
+    console.error('Status check error:', error);
+    res.status(500).json({ error: 'Failed to get user status' });
+  }
+});
+
+app.post('/auth/logout', auth, (req, res) => {
+  try {
+    // Since we're using JWT, we don't need to do anything server-side
+    // The client will remove the token
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Failed to logout' });
   }
 });
 

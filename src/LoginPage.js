@@ -6,7 +6,7 @@ import { FcGoogle } from "react-icons/fc";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
+  const { login, error: authError } = useContext(AuthContext);
   const [loginData, setLoginData] = useState({
     email: "",
     password: ""
@@ -16,6 +16,7 @@ const LoginPage = () => {
 
   const handleChange = (e) => {
     setLoginData({ ...loginData, [e.target.name]: e.target.value });
+    setMessage(""); // Clear any error messages when user starts typing
   };
 
   const handleSubmit = async (e) => {
@@ -24,10 +25,17 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      await login(loginData.email, loginData.password);
+      await login({
+        email: loginData.email,
+        password: loginData.password
+      });
       navigate("/dashboard");
     } catch (error) {
-      setMessage(error.message || "Failed to login. Please check your credentials.");
+      setMessage(
+        error.response?.data?.message || 
+        authError || 
+        "Failed to login. Please check your credentials."
+      );
     } finally {
       setLoading(false);
     }

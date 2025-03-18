@@ -1,13 +1,15 @@
 import React, { useState, useContext } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { AuthContext } from "./AuthContext";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../AuthContext";
 import {
   MdNotifications,
   MdOutlineSearch,
   MdDashboard,
   MdMessage,
   MdSettings,
+  MdLogout,
+  MdChevronLeft,
 } from "react-icons/md";
 import {
   FaUser,
@@ -17,93 +19,32 @@ import {
   FaCompass,
   FaUniversity,
   FaGraduationCap,
+  FaBrain,
+  FaChartLine,
+  FaRobot,
+  FaBook,
 } from "react-icons/fa";
 
 const Dashboard = () => {
-  const [showNotifications, setShowNotifications] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-  // Toggle the right-side notification drawer
-  const toggleNotifications = () => {
-    setShowNotifications((prev) => !prev);
-  };
-
-  // Toggle sidebar between expanded (w-64) and collapsed (w-16)
   const toggleSidebar = () => {
     setCollapsed((prev) => !prev);
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return (
-    <div className="bg-[#fdf7ee] mt-11 min-h-screen w-full relative dark:bg-gray-900 text-black dark:text-white">
-      
-      {/* Header */}
-      <header className="bg-[#f2d9c7] px-4 md:px-8 py-4 shadow-md relative">
-        {/* Centered Title */}
-        <div className="max-w-7xl mx-auto flex items-center justify-center">
-          <h1 className="text-2xl md:text-3xl font-bold text-[#003049] dark:text-black">
-            Vidyavistar Dashboard
-          </h1>
-        </div>
-        {/* Notification Bell in top-right corner */}
-        <button
-          onClick={toggleNotifications}
-          className="absolute right-4 top-4 text-2xl md:text-3xl text-[#003049] dark:text-white hover:text-[#ff7b54] transition-colors focus:outline-none"
-        >
-          <MdNotifications />
-        </button>
-      </header>
-
-      {/* Notification Drawer (slides in from the right) */}
-      {showNotifications && (
-        <motion.div
-          initial={{ x: "100%" }}
-          animate={{ x: 0 }}
-          exit={{ x: "100%" }}
-          transition={{ duration: 0.5 }}
-          className="fixed top-0 right-0 h-full w-80 bg-white dark:bg-gray-800 shadow-xl p-6 z-50"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-[#003049] dark:text-white">
-              Notifications
-            </h2>
-            <button
-              onClick={toggleNotifications}
-              className="text-2xl text-[#003049] dark:text-white focus:outline-none"
-            >
-              &times;
-            </button>
-          </div>
-          <div className="space-y-4">
-            {/* Dummy Notifications */}
-            <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <p className="text-gray-700 dark:text-gray-300">
-                Your profile was updated successfully.
-              </p>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                2 hours ago
-              </span>
-            </div>
-            <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <p className="text-gray-700 dark:text-gray-300">
-                New career paths have been added!
-              </p>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                5 hours ago
-              </span>
-            </div>
-            <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <p className="text-gray-700 dark:text-gray-300">
-                Upcoming internship opportunities available now.
-              </p>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                1 day ago
-              </span>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
+    <div className="bg-[#fdf7ee] min-h-screen w-full relative dark:bg-gray-900 text-black dark:text-white">
       {/* Collapsible Sidebar */}
       <div
         className={`
@@ -117,11 +58,10 @@ const Dashboard = () => {
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between px-4 py-4 bg-[#f2d9c7] dark:bg-gray-700">
-          {/* If not collapsed, show the site name and user pic */}
           {!collapsed && (
             <div className="flex items-center space-x-3">
               <img
-                src={currentUser?.profilePicture ? `http://localhost:4000${currentUser.profilePicture}` : "/images/default1.png"}
+                src={currentUser?.profilePicture || "/images/default1.png"}
                 alt="User Pic"
                 className="w-10 h-10 rounded-full object-cover"
               />
@@ -130,7 +70,6 @@ const Dashboard = () => {
               </h2>
             </div>
           )}
-          {/* Collapse Toggle Button */}
           <button
             onClick={toggleSidebar}
             className="p-1 hover:bg-[#e5c3a8] rounded-full focus:outline-none"
@@ -257,69 +196,124 @@ const Dashboard = () => {
                 )}
               </Link>
             </li>
+            <li>
+              <button 
+                onClick={handleLogout}
+                className="flex items-center p-2 rounded-md hover:bg-[#f2d9c7] dark:hover:bg-gray-700 transition-colors w-full text-left"
+              >
+                <MdLogout className="text-xl" />
+                {!collapsed && (
+                  <span className="ml-4 text-sm font-semibold">Logout</span>
+                )}
+              </button>
+            </li>
           </ul>
         </nav>
       </div>
 
-      {/* Main Dashboard Content */}
+      {/* Main Content */}
       <div
-        style={{
-          marginLeft: collapsed ? "4rem" : "16rem", // 4rem = w-16, 16rem = w-64
-          transition: "margin-left 0.3s ease",
-        }}
-        className="mt-4 p-4"
+        className={`p-8 ${
+          collapsed ? "ml-16" : "ml-64"
+        } mt-11 transition-all duration-300`}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col items-start space-y-2">
-            <div className="flex items-center space-x-2">
-              <FaBriefcase className="text-3xl text-[#003049] dark:text-white" />
-              <h2 className="text-2xl font-bold text-[#003049] dark:text-white">
-                Career Paths
-              </h2>
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold text-[#003049] mb-4">Vidyavistar Dashboard</h1>
+          <p className="text-xl text-gray-700">Welcome back, saurabh! 👋</p>
+        </div>
+
+        {/* NEP Section */}
+        <div className="bg-blue-50 p-8 rounded-xl mb-12">
+          <h2 className="text-2xl font-bold mb-4">NEP 2024-25: Transforming Indian Education</h2>
+          <p className="text-gray-700 mb-6">
+            The New Education Policy 2024-25 introduces groundbreaking reforms to make Indian education more flexible, inclusive, and comprehensive. 
+            The traditional 10+2 structure has been transformed into a dynamic 5+3+3+4 system, aligning education with developmental stages.
+          </p>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="font-semibold mb-3">Key Features:</h3>
+              <ul className="list-disc list-inside space-y-2">
+                <li>Multiple attempts for board exams</li>
+                <li>Multidisciplinary learning approach</li>
+                <li>Early childhood education focus</li>
+                <li>Integrated vocational training</li>
+              </ul>
             </div>
-            <p className="text-gray-700 dark:text-gray-300">
-              Explore various career paths tailored to your interests and skills.
-            </p>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col items-start space-y-2">
-            <div className="flex items-center space-x-2">
-              <FaUser className="text-3xl text-[#003049] dark:text-white" />
-              <h2 className="text-2xl font-bold text-[#003049] dark:text-white">
-                My Profile
-              </h2>
+            <div>
+              <h3 className="font-semibold mb-3">New Structure:</h3>
+              <ul className="list-disc list-inside space-y-2">
+                <li>Foundational (Age 3-8)</li>
+                <li>Preparatory (Age 8-11)</li>
+                <li>Middle (Age 11-14)</li>
+                <li>Secondary (Age 14-18)</li>
+              </ul>
             </div>
-            <p className="text-gray-700 dark:text-gray-300">
-              Update your profile information and see your progress.
-            </p>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col items-start space-y-2">
-            <div className="flex items-center space-x-2">
-              <FaCompass className="text-3xl text-[#003049] dark:text-white" />
-              <h2 className="text-2xl font-bold text-[#003049] dark:text-white">
-                Guidance
-              </h2>
+        </div>
+
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* AI Learning Hub */}
+          <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="flex items-center mb-4">
+              <FaBrain className="text-4xl text-blue-500" />
+              <h3 className="text-xl font-semibold ml-3">AI Learning Hub</h3>
             </div>
-            <p className="text-gray-700 dark:text-gray-300">
-              Access personalized career guidance and mentorship resources.
-            </p>
+            <p className="text-gray-600 mb-4">Experience personalized learning with our advanced AI system.</p>
+            <Link 
+              to="/ai-learning-hub"
+              className="inline-block bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Get Started →
+            </Link>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col items-start space-y-2">
-            <div className="flex items-center space-x-2">
-              <FaBuilding className="text-3xl text-[#003049] dark:text-white" />
-              <h2 className="text-2xl font-bold text-[#003049] dark:text-white">
-                Internships
-              </h2>
+
+          {/* Career Assessment */}
+          <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="flex items-center mb-4">
+              <FaChartLine className="text-4xl text-green-500" />
+              <h3 className="text-xl font-semibold ml-3">Career Assessment</h3>
             </div>
-            <p className="text-gray-700 dark:text-gray-300">
-              Discover internship opportunities to kickstart your career.
-            </p>
+            <p className="text-gray-600 mb-4">Discover your ideal career path through comprehensive assessment.</p>
+            <Link 
+              to="/career-assessment"
+              className="inline-block bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors"
+            >
+              Get Started →
+            </Link>
           </div>
-        </motion.div>
+
+          {/* AI Counselor */}
+          <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="flex items-center mb-4">
+              <FaRobot className="text-4xl text-purple-500" />
+              <h3 className="text-xl font-semibold ml-3">AI Counselor</h3>
+            </div>
+            <p className="text-gray-600 mb-4">Get personalized guidance from our AI-powered counseling system.</p>
+            <Link 
+              to="/ai-counselor"
+              className="inline-block bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+            >
+              Get Started →
+            </Link>
+          </div>
+
+          {/* Resources */}
+          <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="flex items-center mb-4">
+              <FaBook className="text-4xl text-red-500" />
+              <h3 className="text-xl font-semibold ml-3">Resources</h3>
+            </div>
+            <p className="text-gray-600 mb-4">Access study materials and guides for various subjects.</p>
+            <Link 
+              to="/resources"
+              className="inline-block bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors"
+            >
+              Get Started →
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

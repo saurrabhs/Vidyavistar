@@ -4,32 +4,95 @@ const fs = require('fs').promises;
 const path = require('path');
 
 const COLLEGES_FILE = path.join(__dirname, '../data/colleges.json');
-let collegesCache = null;
-let lastCacheTime = null;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-// Helper function to read and cache colleges data
-const readColleges = async () => {
+// Get all colleges (paginated)
+router.get('/', async (req, res) => {
   try {
-    // Return cached data if valid
-    if (collegesCache && lastCacheTime && (Date.now() - lastCacheTime < CACHE_TTL)) {
-      return collegesCache;
-    }
-
     const data = await fs.readFile(COLLEGES_FILE, 'utf8');
-    collegesCache = JSON.parse(data);
-    lastCacheTime = Date.now();
-    return collegesCache;
+    const colleges = JSON.parse(data);
+    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    
+    const results = colleges.slice(startIndex, endIndex);
+    const totalPages = Math.ceil(colleges.length / limit);
+    
+    res.json({
+      results,
+      totalPages,
+      currentPage: page,
+      totalResults: colleges.length
+    });
   } catch (error) {
     console.error('Error reading colleges:', error);
-    throw new Error('Failed to read college data');
+    res.status(500).json({ error: 'Failed to read college data' });
   }
-};
+});
+
+// Search colleges
+router.post('/search', async (req, res) => {
+  try {
+    const { percentile, branch, category, location, collegeType } = req.body;
+    const page = parseInt(req.body.page) || 1;
+    const limit = parseInt(req.body.limit) || 10;
+
+    const data = await fs.readFile(COLLEGES_FILE, 'utf8');
+    let colleges = JSON.parse(data);
+
+    // Apply filters
+    if (colleges && colleges.length > 0) {
+      if (location && location !== '') {
+        colleges = colleges.filter(college => 
+          college.location && college.location.city && 
+          college.location.city.toLowerCase() === location.toLowerCase()
+        );
+      }
+
+      if (collegeType && collegeType !== '' && collegeType !== 'All') {
+        colleges = colleges.filter(college => college.type === collegeType);
+      }
+
+      if (branch && branch !== '') {
+        colleges = colleges.filter(college =>
+          college.branches && college.branches.some(b => b.branchName === branch)
+        );
+      }
+
+      if (percentile && category) {
+        colleges = colleges.filter(college =>
+          college.branches && college.branches.some(b => {
+            const cutoff = parseFloat(b.cutoffs?.[category]) || 0;
+            return parseFloat(percentile) >= cutoff;
+          })
+        );
+      }
+    }
+
+    // Apply pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const results = colleges.slice(startIndex, endIndex);
+    const totalPages = Math.ceil(colleges.length / limit);
+
+    res.json({
+      results,
+      totalPages,
+      currentPage: page,
+      totalResults: colleges.length
+    });
+  } catch (error) {
+    console.error('Error searching colleges:', error);
+    res.status(500).json({ error: 'Failed to search colleges' });
+  }
+});
 
 // Get unique cities
 router.get('/cities', async (req, res) => {
   try {
-    const colleges = await readColleges();
+    const data = await fs.readFile(COLLEGES_FILE, 'utf8');
+    const colleges = JSON.parse(data);
     const cities = new Set();
     
     colleges.forEach(college => {
@@ -49,7 +112,8 @@ router.get('/cities', async (req, res) => {
 // Get unique branches
 router.get('/branches', async (req, res) => {
   try {
-    const colleges = await readColleges();
+    const data = await fs.readFile(COLLEGES_FILE, 'utf8');
+    const colleges = JSON.parse(data);
     const branches = new Set();
     
     colleges.forEach(college => {
@@ -70,84 +134,11 @@ router.get('/branches', async (req, res) => {
   }
 });
 
-// Search colleges
-router.post('/search', async (req, res) => {
-  try {
-    const { percentile, branch, category, location, collegeType } = req.body;
-    const colleges = await readColleges();
-    
-    let results = colleges.filter(college => {
-      // Basic validation
-      if (!college || !Array.isArray(college.branches)) {
-        return false;
-      }
-
-      // Filter by college type
-      if (collegeType && collegeType !== 'All' && college.type !== collegeType) {
-        return false;
-      }
-
-      // Filter by location
-      if (location && (!college.location?.city || college.location.city !== location)) {
-        return false;
-      }
-
-      // Filter by branch and cutoff
-      if (branch || percentile || category) {
-        return college.branches.some(b => {
-          // Skip invalid branch entries
-          if (!b || typeof b !== 'object') return false;
-
-          // Branch name check
-          if (branch && b.branchName !== branch) return false;
-
-          // Cutoff check
-          if (percentile && b.cutoffs?.[category]) {
-            const cutoff = parseFloat(b.cutoffs[category]);
-            if (isNaN(cutoff) || cutoff > parseFloat(percentile)) return false;
-          }
-
-          return true;
-        });
-      }
-
-      return true;
-    });
-
-    // Sort by cutoff percentile if available
-    if (percentile && category) {
-      results.sort((a, b) => {
-        const aMax = Math.max(...a.branches.map(b => parseFloat(b.cutoffs?.[category]) || 0));
-        const bMax = Math.max(...b.branches.map(b => parseFloat(b.cutoffs?.[category]) || 0));
-        return bMax - aMax;
-      });
-    }
-
-    // Limit results
-    results = results.slice(0, 50);
-
-    res.json(results);
-  } catch (error) {
-    console.error('Error searching colleges:', error);
-    res.status(500).json({ error: 'Failed to search colleges' });
-  }
-});
-
-// Get all colleges
-router.get('/', async (req, res) => {
-  try {
-    const colleges = await readColleges();
-    res.json(colleges);
-  } catch (error) {
-    console.error('Error fetching all colleges:', error);
-    res.status(500).json({ error: 'Failed to fetch colleges' });
-  }
-});
-
 // Get college details by ID
 router.get('/:id', async (req, res) => {
   try {
-    const colleges = await readColleges();
+    const data = await fs.readFile(COLLEGES_FILE, 'utf8');
+    const colleges = JSON.parse(data);
     const college = colleges.find(c => c._id === req.params.id);
     
     if (!college) {
@@ -174,18 +165,12 @@ router.post('/import', async (req, res) => {
       _id: college._id || Date.now().toString()
     }));
 
-    await writeColleges(collegesWithIds);
+    await fs.writeFile(COLLEGES_FILE, JSON.stringify(collegesWithIds, null, 2));
     res.json({ message: 'Colleges imported successfully', count: collegesWithIds.length });
   } catch (error) {
     console.error('Import error:', error);
     res.status(500).json({ error: 'Failed to import college data' });
   }
 });
-
-const writeColleges = async (colleges) => {
-  await fs.writeFile(COLLEGES_FILE, JSON.stringify(colleges, null, 2));
-  collegesCache = colleges;
-  lastCacheTime = Date.now();
-};
 
 module.exports = router;
