@@ -1,15 +1,12 @@
 import React, { useState, useContext } from "react";
-import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../AuthContext";
 import {
-  MdNotifications,
   MdOutlineSearch,
   MdDashboard,
   MdMessage,
   MdSettings,
   MdLogout,
-  MdChevronLeft,
 } from "react-icons/md";
 import {
   FaUser,

@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const AICounselorPage = () => {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
 
   const features = [
     {
