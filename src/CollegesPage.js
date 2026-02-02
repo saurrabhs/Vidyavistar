@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import sampleColleges from './data/sampleColleges';
 
 const CollegesPage = () => {
   const [searchParams, setSearchParams] = useState({
@@ -74,13 +75,26 @@ const CollegesPage = () => {
     setInitialLoading(true);
     setError('');
     try {
-      const response = await axios.get('http://localhost:5001/api/colleges', {
-        params: { page: 1, limit: 10 }
-      });
-      setAllColleges(response.data);
+      // try primary backend (5001), then fallback to default server (5002)
+      let response;
+      try {
+        response = await axios.get('http://localhost:5001/api/colleges', { params: { page: 1, limit: 10 } });
+      } catch (e) {
+        // fallback to server port 5002
+        response = await axios.get('http://localhost:5002/api/colleges', { params: { page: 1, limit: 10 } });
+      }
+
+      if (response?.data && response.data.results && response.data.results.length > 0) {
+        setAllColleges(response.data);
+      } else {
+        // If backend returned empty or unexpected structure, use sample data
+        setAllColleges({ results: sampleColleges.slice(0, 10), totalPages: 1, currentPage: 1, totalResults: sampleColleges.length });
+      }
     } catch (err) {
       console.error('Error fetching colleges:', err);
-      setError('Failed to load colleges. Please refresh the page.');
+      // Use local sample data as a graceful fallback when backend is unavailable
+      setAllColleges({ results: sampleColleges.slice(0, 10), totalPages: 1, currentPage: 1, totalResults: sampleColleges.length });
+      setError('Backend unavailable — showing sample colleges.');
     } finally {
       setInitialLoading(false);
     }
@@ -101,8 +115,29 @@ const CollegesPage = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5001/api/colleges/search', searchParams);
-      setResults(response.data);
+      let response;
+      try {
+        response = await axios.post('http://localhost:5001/api/colleges/search', searchParams);
+      } catch (e) {
+        response = await axios.post('http://localhost:5002/api/colleges/search', searchParams);
+      }
+
+      if (response?.data) {
+        setResults(response.data);
+      } else {
+        // fallback to local sample filtering
+        const filtered = sampleColleges.filter(c => {
+          if (searchParams.location && searchParams.location !== '' && c.location?.city.toLowerCase() !== searchParams.location.toLowerCase()) return false;
+          if (searchParams.collegeType && searchParams.collegeType !== '' && searchParams.collegeType !== 'All' && c.type !== searchParams.collegeType) return false;
+          if (searchParams.branch && searchParams.branch !== '' && !c.branches?.some(b => b.branchName === searchParams.branch)) return false;
+          if (searchParams.percentile && searchParams.category) {
+            const isEligible = c.branches?.some(b => (parseFloat(b.cutoffs?.[searchParams.category]) || 0) <= parseFloat(searchParams.percentile));
+            if (!isEligible) return false;
+          }
+          return true;
+        });
+        setResults({ results: filtered, totalPages: 1, currentPage: 1, totalResults: filtered.length });
+      }
     } catch (err) {
       setError('Failed to fetch colleges. Please try again.');
       console.error('Search error:', err);

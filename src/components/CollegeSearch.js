@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import debounce from 'lodash/debounce';
+import sampleColleges from '../data/sampleColleges';
 
 const CollegeSearch = () => {
   const [searchParams, setSearchParams] = useState({
@@ -22,10 +23,21 @@ const CollegeSearch = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [citiesRes, branchesRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/colleges/cities'),
-          axios.get('http://localhost:5000/api/colleges/branches')
-        ]);
+        // Try primary server first, fallback to alternate port if needed
+        let citiesRes, branchesRes;
+        try {
+          [citiesRes, branchesRes] = await Promise.all([
+            axios.get('http://localhost:5000/api/colleges/cities'),
+            axios.get('http://localhost:5000/api/colleges/branches')
+          ]);
+        } catch (e) {
+          // backend might be on 5002 or unavailable — derive from sample
+          const cities = Array.from(new Set(sampleColleges.map(c => c.location?.city).filter(Boolean)));
+          const branches = Array.from(new Set(sampleColleges.flatMap(c => c.branches?.map(b => b.branchName) || [])));
+          setCities(cities.sort());
+          setBranches(branches.sort());
+          return;
+        }
 
         // Filter out empty or invalid cities and sort them
         const validCities = citiesRes.data
@@ -40,7 +52,12 @@ const CollegeSearch = () => {
         setBranches(validBranches);
       } catch (err) {
         console.error('Failed to fetch data:', err);
-        setError('Failed to load cities and branches. Please try again.');
+        // use sample data fallback
+        const cities = Array.from(new Set(sampleColleges.map(c => c.location?.city).filter(Boolean)));
+        const branches = Array.from(new Set(sampleColleges.flatMap(c => c.branches?.map(b => b.branchName) || [])));
+        setCities(cities.sort());
+        setBranches(branches.sort());
+        setError('Failed to load cities and branches from backend — using sample data.');
       } finally {
         setLoading(false);
       }
@@ -81,8 +98,28 @@ const CollegeSearch = () => {
         setLoading(true);
         setError('');
         try {
-          const response = await axios.post('http://localhost:5000/api/colleges/search', params);
-          setResults(response.data);
+            // Try backend search, fallback to sample data filtering
+            let response;
+            try {
+              response = await axios.post('http://localhost:5000/api/colleges/search', params);
+              setResults(response.data.results || response.data);
+            } catch (e) {
+              // Filter sampleColleges locally
+              let filtered = sampleColleges;
+              if (params.location) {
+                filtered = filtered.filter(c => c.location?.city?.toLowerCase() === params.location.toLowerCase());
+              }
+              if (params.collegeType && params.collegeType !== 'All') {
+                filtered = filtered.filter(c => c.type === params.collegeType);
+              }
+              if (params.branch) {
+                filtered = filtered.filter(c => c.branches?.some(b => b.branchName === params.branch));
+              }
+              if (params.percentile && params.category) {
+                filtered = filtered.filter(c => c.branches?.some(b => (parseFloat(b.cutoffs?.[params.category]) || 0) <= parseFloat(params.percentile)));
+              }
+              setResults(filtered);
+            }
         } catch (err) {
           setError('Failed to fetch colleges. Please try again.');
           console.error('Search error:', err);

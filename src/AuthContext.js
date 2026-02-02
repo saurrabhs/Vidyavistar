@@ -1,15 +1,10 @@
 // AuthContext.js
 import React, { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
 
-// Create axios instance with default config
-const api = axios.create({
-  baseURL: 'http://localhost:5000',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  withCredentials: true // Enable sending cookies with requests
-});
+// Note: This AuthContext has been simplified for development/testing.
+// It accepts any username/password and creates a local dev token and user.
+// This avoids calling the backend for authentication so you can test the
+// frontend login flow without a working server.
 
 export const AuthContext = createContext();
 
@@ -19,60 +14,50 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Check if user is logged in on mount
+    // On mount, load any saved user/token from localStorage (dev mode)
     const token = localStorage.getItem('token');
-    if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      checkAuthStatus();
-    } else {
-      setLoading(false);
+    const userJson = localStorage.getItem('user');
+    if (token && userJson) {
+      try {
+        const user = JSON.parse(userJson);
+        setCurrentUser(user);
+        setError(null);
+      } catch (e) {
+        console.error('Failed to parse stored user:', e);
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
     }
+    setLoading(false);
   }, []);
 
-  const checkAuthStatus = async () => {
-    try {
-      const response = await api.get('/auth/status');
-      setCurrentUser(response.data.user);
-      setError(null);
-    } catch (error) {
-      console.error('Auth status check failed:', error);
-      localStorage.removeItem('token');
-      delete api.defaults.headers.common['Authorization'];
-      setError('Authentication failed. Please log in again.');
-      setCurrentUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // login: accept any credentials and create a local dev token + user
   const login = async (credentials) => {
-    try {
-      const response = await api.post('/auth/login', credentials);
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setCurrentUser(user);
-      setError(null);
-      return user;
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message || 'Login failed';
-      console.error('Login failed:', errorMessage);
-      setError(errorMessage);
-      throw error;
-    }
+    // Create a simple dev token and user object
+    const token = `devtoken-${Date.now()}`;
+    const user = {
+      _id: token,
+      name: credentials.email || credentials.username || 'Dev User',
+      email: credentials.email || `${credentials.username || 'dev'}@example.com`,
+      role: 'student',
+      createdAt: new Date().toISOString()
+    };
+
+    // Persist to localStorage so refresh preserves login
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+
+    setCurrentUser(user);
+    setError(null);
+    return user;
   };
 
   const logout = async () => {
-    try {
-      await api.post('/auth/logout');
-    } catch (error) {
-      console.error('Logout request failed:', error);
-    } finally {
-      localStorage.removeItem('token');
-      delete api.defaults.headers.common['Authorization'];
-      setCurrentUser(null);
-      setError(null);
-    }
+    // Clear local dev auth
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setCurrentUser(null);
+    setError(null);
   };
 
   const value = {
